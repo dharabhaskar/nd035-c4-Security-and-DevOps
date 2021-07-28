@@ -18,8 +18,12 @@ public class ItemController {
 
 	@Autowired
 	private ItemRepository itemRepository;
-	
-	@GetMapping
+
+    public ItemController(ItemRepository itemRepositoryMocked) {
+    	this.itemRepository=itemRepositoryMocked;
+    }
+
+    @GetMapping
 	public ResponseEntity<List<Item>> getItems() {
 		return ResponseEntity.ok(itemRepository.findAll());
 	}
