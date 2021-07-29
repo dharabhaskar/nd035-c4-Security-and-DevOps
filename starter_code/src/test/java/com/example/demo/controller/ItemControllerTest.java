@@ -39,6 +39,7 @@ public class ItemControllerTest {
         Mockito.when(itemRepositoryMocked.findAll()).thenReturn(allItems);
         Mockito.when(itemRepositoryMocked.findByName(testItem.getName())).thenReturn(allItems);
         Mockito.when(itemRepositoryMocked.findById(testItem.getId())).thenReturn(Optional.of(testItem));
+        Mockito.when(itemRepositoryMocked.save(testItem)).thenReturn(testItem);
     }
 
     @Test
@@ -67,6 +68,15 @@ public class ItemControllerTest {
         Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
         List<Item> items = response.getBody();
         Assert.assertEquals(testItem, items.get(0));
+    }
+
+    @Test
+    public void testSaveItem(){
+        ResponseEntity<Item> response = itemController.saveItem(testItem);
+        Assert.assertNotNull(response);
+        Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
+        Item receivedItem = response.getBody();
+        Assert.assertEquals(testItem.getId(), receivedItem.getId());
     }
 
     private Item getItem() {
