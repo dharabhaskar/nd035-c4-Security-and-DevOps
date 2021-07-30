@@ -79,6 +79,23 @@ public class CartControllerTest {
         Assert.assertEquals(cartRequest.getQuantity(),cart.getItems().size());
     }
 
+    @Test
+    public void testRemoveFromCart(){
+        //Adding  items to cart (2 items)...
+        cartController.addTocart(cartRequest);
+
+        //Removing (1 item)
+        cartRequest.setQuantity(1);
+        ResponseEntity<Cart> response = cartController.removeFromcart(cartRequest);
+        Assert.assertNotNull(response);
+        Assert.assertEquals(HttpStatus.OK,response.getStatusCode());
+
+        Cart cart=response.getBody();
+        Assert.assertNotNull(cart);
+        //Expecting 2-1 = 1 item on cart...
+        Assert.assertEquals(1,cart.getItems().size());
+    }
+
 
     private CreateUserRequest getMockUser(){
         CreateUserRequest cr=new CreateUserRequest();
