@@ -1,10 +1,15 @@
-package com.example.demo;
+package com.example.demo.controller;
 
+import com.example.demo.controllers.CartController;
 import com.example.demo.controllers.UserController;
+import com.example.demo.model.persistence.Cart;
+import com.example.demo.model.persistence.Item;
 import com.example.demo.model.persistence.User;
 import com.example.demo.model.persistence.repositories.CartRepository;
+import com.example.demo.model.persistence.repositories.ItemRepository;
 import com.example.demo.model.persistence.repositories.UserRepository;
 import com.example.demo.model.requests.CreateUserRequest;
+import com.example.demo.model.requests.ModifyCartRequest;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,15 +22,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class UserControllerTest {
+public class CartControllerTest {
     @Mock
     private UserRepository userRepository;
+
     @Mock
     private CartRepository cartRepository;
+
+    @Mock
+    private ItemRepository itemRepository;
+
     @Mock
     private BCryptPasswordEncoder passwordEncoder;
 
@@ -33,53 +44,55 @@ public class UserControllerTest {
 
     private CreateUserRequest testUserReq;
     private User testUser;
+    private Item testItem;
+    private ModifyCartRequest cartRequest;
 
-    private final String HASHED_PASSWORD="hashedPASSword";
-
-
+    private CartController cartController;
 
     @Before
     public void setup(){
+        testItem=getItem();
         testUserReq=getMockUser();
         userController=new UserController(userRepository,cartRepository,passwordEncoder);
+        cartController=new CartController(userRepository,cartRepository,itemRepository);
 
         testUser=userController.createUser(testUserReq).getBody();
         Assert.assertNotNull(testUser);
         Mockito.when(userRepository.findByUsername(testUserReq.getUsername())).thenReturn(testUser);
-        Mockito.when(userRepository.findById(testUser.getId())).thenReturn(Optional.of(testUser));
+        Mockito.when(itemRepository.findById(testItem.getId())).thenReturn(Optional.of(testItem));
+
+        cartRequest=new ModifyCartRequest();
+        cartRequest.setUsername(testUser.getUsername());
+        cartRequest.setItemId(testItem.getId());
+        cartRequest.setQuantity(2);
     }
 
     @Test
-    public void testCreateUser(){
-        Mockito.when(passwordEncoder.encode(testUserReq.getPassword())).thenReturn(HASHED_PASSWORD);
-        ResponseEntity<User> response = userController.createUser(testUserReq);
+    public void testAddToCart(){
+        ResponseEntity<Cart> response = cartController.addToCart(cartRequest);
         Assert.assertNotNull(response);
         Assert.assertEquals(HttpStatus.OK,response.getStatusCode());
 
-        User user=response.getBody();
-        Assert.assertNotNull(user);
-        Assert.assertEquals(testUserReq.getUsername(),user.getUsername());
-        Assert.assertEquals(HASHED_PASSWORD,user.getPassword());
+        Cart cart=response.getBody();
+        Assert.assertNotNull(cart);
+        Assert.assertEquals(cartRequest.getQuantity(),cart.getItems().size());
     }
 
     @Test
-    public void testFindUserById(){
-        ResponseEntity<User> response = userController.findById(testUser.getId());
-        Assert.assertNotNull(response);
-        Assert.assertEquals(HttpStatus.OK,response.getStatusCode());
-        User user=response.getBody();
-        Assert.assertNotNull(user);
-        Assert.assertEquals(testUserReq.getUsername(),user.getUsername());
-    }
+    public void testRemoveFromCart(){
+        //Adding  items to cart (2 items)...
+        cartController.addToCart(cartRequest);
 
-    @Test
-    public void testFindUserByName(){
-        ResponseEntity<User> response = userController.findByUserName(testUser.getUsername());
+        //Removing (1 item)
+        cartRequest.setQuantity(1);
+        ResponseEntity<Cart> response = cartController.removeFromCart(cartRequest);
         Assert.assertNotNull(response);
         Assert.assertEquals(HttpStatus.OK,response.getStatusCode());
-        User user=response.getBody();
-        Assert.assertNotNull(user);
-        Assert.assertEquals(testUserReq.getUsername(),user.getUsername());
+
+        Cart cart=response.getBody();
+        Assert.assertNotNull(cart);
+        //Expecting 2-1 = 1 item on cart...
+        Assert.assertEquals(1,cart.getItems().size());
     }
 
 
@@ -89,5 +102,14 @@ public class UserControllerTest {
         cr.setPassword("passCode");
         cr.setConfirmPassword("passCode");
         return cr;
+    }
+
+    private Item getItem() {
+        Item item = new Item();
+        item.setId(1L);
+        item.setName("Pen");
+        item.setPrice(BigDecimal.valueOf(5.66));
+        item.setDescription("Gel Pen");
+        return item;
     }
 }
