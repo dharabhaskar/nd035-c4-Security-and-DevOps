@@ -35,7 +35,7 @@ public class UserController {
 	@Autowired
 	private BCryptPasswordEncoder bCryptPasswordEncoder;
 
-	private static final Logger log = LoggerFactory.getLogger(CartController.class);
+	private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
 
 	public UserController(UserRepository userRepository, CartRepository cartRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {

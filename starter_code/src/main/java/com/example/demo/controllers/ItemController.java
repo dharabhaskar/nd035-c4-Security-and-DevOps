@@ -22,7 +22,7 @@ public class ItemController {
     	this.itemRepository=itemRepositoryMocked;
     }
 
-	private static final Logger log = LoggerFactory.getLogger(CartController.class);
+	private static final Logger log = LoggerFactory.getLogger(ItemController.class);
 
     @GetMapping
 	public ResponseEntity<List<Item>> getItems() {
