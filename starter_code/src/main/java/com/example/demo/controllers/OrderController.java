@@ -30,6 +30,11 @@ public class OrderController {
 	@Autowired
 	private OrderRepository orderRepository;
 
+	public OrderController(UserRepository userRepository, OrderRepository orderRepository) {
+		this.userRepository = userRepository;
+		this.orderRepository = orderRepository;
+	}
+
 	private static final Logger log = LoggerFactory.getLogger(OrderController.class);
 
 	@PostMapping("/submit/{username}")
@@ -48,7 +53,7 @@ public class OrderController {
 	public ResponseEntity<List<UserOrder>> getOrdersForUser(@PathVariable String username) {
 		User user = userRepository.findByUsername(username);
 		if(user == null) {
-			log.error("ERROR: USER NOT FOUND...");
+			log.error("USER NOT FOUND...");
 			return ResponseEntity.notFound().build();
 		}
 		return ResponseEntity.ok(orderRepository.findByUser(user));
